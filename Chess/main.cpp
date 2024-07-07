@@ -233,26 +233,8 @@ bool isCheck(bool isWhiteTurn) {
 }
 
 
-
-// Lógica para verificar se o rei está em xeque-mate
-// Function to check if a player is in checkmate
-
-
-// Lógica para verificar se há empate por afogamento
-//bool isStalemate(bool isWhiteTurn) {
-
-    // Retorna true se houver afogamento, false caso contrário
-//}
-// Lógica para verificar se há tríplice repetição
-//bool isThreefoldRepetition() {
-
-    // Retorna true se houver repetição, false caso contrário
-//}
-// Lógica para verificar se a regra dos cinquenta lances se aplica
-//bool isFiftyMoveRule() {
-
     // Retorna true se houver empate por cinquenta lances, false caso contrário
-//}
+
 
 // Função para realizar o movimento no tabuleiro
 
@@ -263,7 +245,6 @@ void handleMove(int destRow, int destCol, bool isWhiteTurn) {
     char originalDestPiece = board[destRow][destCol];
     // Verificar se há uma peça selecionada
     
-        
     if (selectedPiecePos.x != -1 && selectedPiecePos.y != -1) {
         
             // Verificar se o movimento é válido e se o caminho está livre
@@ -281,13 +262,9 @@ void handleMove(int destRow, int destCol, bool isWhiteTurn) {
            }
         }
         
-
-
-
     // Redefinir a posição da peça selecionada
     selectedPiecePos = sf::Vector2i(-1, -1);
 }
-
 
 
 int main() {
@@ -378,7 +355,6 @@ int main() {
         }
 
 
-
         window.clear();
         window.draw(boardSprite);
 
@@ -404,13 +380,7 @@ int main() {
             }
         }
 
-
-
         window.display();
-
-
-
-
 
 
     }
