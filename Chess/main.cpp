@@ -9,6 +9,7 @@ const int SQUARE_SIZE = 75;
 
 typedef char ChessBoard[BOARD_SIZE][BOARD_SIZE];
 
+
 // Declaração e definição da variável board
 ChessBoard board = {
     {'R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'},
@@ -191,55 +192,15 @@ bool isValidMove(int startRow, int startCol, int destRow, int destCol) {
         return false;
     }
 }
-// Função para verificar se um determinado movimento coloca o rei em xeque
-bool putsKingInCheck(int startRow, int startCol, int destRow, int destCol, bool isWhiteTurn) {
-    // Fazer uma cópia temporária do tabuleiro para simular o movimento
-    char tempBoard[BOARD_SIZE][BOARD_SIZE];
-    for (int i = 0; i < BOARD_SIZE; ++i) {
-        for (int j = 0; j < BOARD_SIZE; ++j) {
-            tempBoard[i][j] = board[i][j];
-        }
-    }
 
-    // Realizar o movimento temporário
-    tempBoard[destRow][destCol] = tempBoard[startRow][startCol];
-    tempBoard[startRow][startCol] = ' ';
 
-    // Encontrar a posição do rei do jogador atual
-    int kingRow = -1, kingCol = -1;
-    char kingPiece = (isWhiteTurn) ? 'K' : 'k';
-    for (int i = 0; i < BOARD_SIZE; ++i) {
-        for (int j = 0; j < BOARD_SIZE; ++j) {
-            if (tempBoard[i][j] == kingPiece) {
-                kingRow = i;
-                kingCol = j;
-                break;
-            }
-        }
-    }
-
-    // Verificar se o rei está em xeque após o movimento
-    for (int i = 0; i < BOARD_SIZE; ++i) {
-        for (int j = 0; j < BOARD_SIZE; ++j) {
-            if ((isWhiteTurn && isBlackPiece(tempBoard[i][j])) ||
-                (!isWhiteTurn && isWhitePiece(tempBoard[i][j]))) {
-                // Encontrou uma peça do oponente, verificar se pode atacar o rei
-                if (isValidMove(i, j, kingRow, kingCol) &&
-                    isPathClear(i, j, kingRow, kingCol)) {
-                    return true;  // O rei está em xeque
-                }
-            }
-        }
-    }
-
-    return false;  // O rei não está em xeque
-}
-
-// Função para verificar se um rei está em xeque
+ //Função para verificar se um rei está em xeque
 bool isCheck(bool isWhiteTurn) {
     // Encontrar a posição do rei do jogador atual
     int kingRow = -1, kingCol = -1;
     char kingPiece = (isWhiteTurn) ? 'K' : 'k';
+
+    // Procurar a posição do rei
     for (int i = 0; i < BOARD_SIZE; ++i) {
         for (int j = 0; j < BOARD_SIZE; ++j) {
             if (board[i][j] == kingPiece) {
@@ -248,16 +209,20 @@ bool isCheck(bool isWhiteTurn) {
                 break;
             }
         }
+        if (kingRow != -1) {
+            break;
+        }
     }
 
     // Verificar se o rei está sob ataque
     for (int i = 0; i < BOARD_SIZE; ++i) {
         for (int j = 0; j < BOARD_SIZE; ++j) {
-            if ((isWhiteTurn && isBlackPiece(board[i][j])) ||
-                (!isWhiteTurn && isWhitePiece(board[i][j]))) {
-                // Encontrou uma peça do oponente, verificar se pode atacar o rei
+            char piece = board[i][j];
+            if ((isWhiteTurn && piece >= 'a' && piece <= 'z') ||  // Peça preta
+                (!isWhiteTurn && piece >= 'A' && piece <= 'Z')) {  // Peça branca
+                // Verificar se essa peça pode atacar o rei
                 if (isValidMove(i, j, kingRow, kingCol) &&
-                    isPathClear(i, j, kingRow, kingCol)) {
+                    isPathClear(i, j, kingRow, kingCol)) {  // Verificar se o caminho está livre
                     return true;  // O rei está em xeque
                 }
             }
@@ -266,79 +231,12 @@ bool isCheck(bool isWhiteTurn) {
 
     return false;  // O rei não está em xeque
 }
+
+
+
 // Lógica para verificar se o rei está em xeque-mate
 // Function to check if a player is in checkmate
-bool isCheckmate(bool whiteTurn) {
-    char king = whiteTurn ? 'K' : 'k';
 
-    // Find king's position
-    int kingRow = -1, kingCol = -1;
-    for (int row = 0; row < BOARD_SIZE; ++row) {
-        for (int col = 0; col < BOARD_SIZE; ++col) {
-            if (board[row][col] == king) {
-                kingRow = row;
-                kingCol = col;
-                break;
-            }
-        }
-        if (kingRow != -1) {
-            break;
-        }
-    }
-
-    // Check if the king can move to any square and escape check
-    for (int dRow = -1; dRow <= 1; ++dRow) {
-        for (int dCol = -1; dCol <= 1; ++dCol) {
-            if (dRow == 0 && dCol == 0) {
-                continue;
-            }
-            int destRow = kingRow + dRow;
-            int destCol = kingCol + dCol;
-            if (destRow >= 0 && destRow < BOARD_SIZE && destCol >= 0 && destCol < BOARD_SIZE &&
-                (board[destRow][destCol] == ' ' || (whiteTurn && isBlackPiece(board[destRow][destCol])) ||
-                    (!whiteTurn && isWhitePiece(board[destRow][destCol])))) {
-                char originalPiece = board[destRow][destCol];
-                board[destRow][destCol] = king;
-                board[kingRow][kingCol] = ' ';
-
-                bool inCheck = isCheck(!whiteTurn);
-                board[destRow][destCol] = originalPiece;
-                board[kingRow][kingCol] = king;
-
-                if (!inCheck) {
-                    return false;
-                }
-            }
-        }
-    }
-
-    // Check if any other piece can block or capture the checking piece
-    for (int row = 0; row < BOARD_SIZE; ++row) {
-        for (int col = 0; col < BOARD_SIZE; ++col) {
-            if ((whiteTurn && isWhitePiece(board[row][col])) || (!whiteTurn && isBlackPiece(board[row][col]))) {
-                for (int destRow = 0; destRow < BOARD_SIZE; ++destRow) {
-                    for (int destCol = 0; destCol < BOARD_SIZE; ++destCol) {
-                        if (isValidMove(row, col, destRow, destCol)) {
-                            char originalPiece = board[destRow][destCol];
-                            board[destRow][destCol] = board[row][col];
-                            board[row][col] = ' ';
-
-                            bool inCheck = isCheck(!whiteTurn);
-                            board[row][col] = board[destRow][destCol];
-                            board[destRow][destCol] = originalPiece;
-
-                            if (!inCheck) {
-                                return false;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    return true;
-}
 
 // Lógica para verificar se há empate por afogamento
 //bool isStalemate(bool isWhiteTurn) {
@@ -357,39 +255,39 @@ bool isCheckmate(bool whiteTurn) {
 //}
 
 // Função para realizar o movimento no tabuleiro
+
 void handleMove(int destRow, int destCol, bool isWhiteTurn) {
+    // Simular o movimento no tabuleiro
+    
+    char originalPiece = board[selectedPiecePos.y][selectedPiecePos.x];
+    char originalDestPiece = board[destRow][destCol];
     // Verificar se há uma peça selecionada
+    
+        
     if (selectedPiecePos.x != -1 && selectedPiecePos.y != -1) {
-        // Verificar se o movimento é válido e se o caminho está livre
-        if (isValidMove(selectedPiecePos.y, selectedPiecePos.x, destRow, destCol) &&
-            isPathClear(selectedPiecePos.y, selectedPiecePos.x, destRow, destCol)) {
-            // Realizar o movimento no tabuleiro
-            board[destRow][destCol] = board[selectedPiecePos.y][selectedPiecePos.x];
-            board[selectedPiecePos.y][selectedPiecePos.x] = ' ';
+        
+            // Verificar se o movimento é válido e se o caminho está livre
+            if (isValidMove(selectedPiecePos.y, selectedPiecePos.x, destRow, destCol) &&
+                isPathClear(selectedPiecePos.y, selectedPiecePos.x, destRow, destCol)) {
+                board[destRow][destCol] = board[selectedPiecePos.y][selectedPiecePos.x];
+                board[selectedPiecePos.y][selectedPiecePos.x] = ' ';
+                
 
-            // Verificar se o rei do jogador atual está em xeque após o movimento
-            bool kingInCheck = isCheck(isWhiteTurn);
-
-            // Verificar se o jogo terminou devido a um xeque-mate
-            if (kingInCheck && isCheckmate(isWhiteTurn)) {
-                std::cout << "Xeque-mate! O jogo acabou." << std::endl;
-                // Aqui você pode adicionar lógica para encerrar o jogo ou mostrar uma mensagem de fim de jogo
             }
-
-            // Verificar se o jogo terminou devido a um empate por afogamento
-           // if (!kingInCheck && isStalemate(isWhiteTurn)) {
-             //   std::cout << "Empate por afogamento! O jogo acabou." << std::endl;
-                // Aqui você pode adicionar lógica para encerrar o jogo ou mostrar uma mensagem de empate
-            //}
-
-            // Alternar para o próximo jogador
-            isWhiteTurn = !isWhiteTurn;
+           
+            if (isCheck(!isWhiteTurn)) {
+                board[selectedPiecePos.y][selectedPiecePos.x] = originalPiece;
+                board[destRow][destCol] = originalDestPiece;
+           }
         }
-    }
+        
+
+
 
     // Redefinir a posição da peça selecionada
     selectedPiecePos = sf::Vector2i(-1, -1);
 }
+
 
 
 int main() {
@@ -460,13 +358,17 @@ int main() {
 
                     if (destCol >= 0 && destCol < BOARD_SIZE && destRow >= 0 && destRow < BOARD_SIZE) {
                         if (isValidMove(selectedPiecePos.y, selectedPiecePos.x, destRow, destCol) &&
-                            isPathClear(selectedPiecePos.y, selectedPiecePos.x, destRow, destCol)) {
+                            isPathClear(selectedPiecePos.y, selectedPiecePos.x, destRow, destCol) &&
+                            !isCheck(isWhiteTurn)) {
                             handleMove(destRow, destCol, isWhiteTurn);
-
-                            // Alternar para o próximo jogador
-                            if (isCheckmate) {
-                                isWhiteTurn = !isWhiteTurn;
+                            
+                            
+                            if(!isCheck(!isWhiteTurn)){
+                            isWhiteTurn = !isWhiteTurn;
                             }
+                              
+                            
+                            
                         }
                     }
 
